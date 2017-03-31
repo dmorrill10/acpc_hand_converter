@@ -115,6 +115,10 @@ def main():
             '--start_index', type=int, default=1,
             help='Index of first hand'
     )
+    parser.add_argument(
+            '--acpc', type=str, default='',
+            help='Path to write ACPC log with consistent hand numbers'
+    )
     parser.set_defaults(unix=False)
     args = parser.parse_args()
 
@@ -143,6 +147,10 @@ def main():
         log_file = open(args.log_file, 'r')
     else:
         log_file = sys.stdin
+
+    acpc_output_file = None
+    if len(args.acpc) > 0:
+        acpc_output_file = open(args.acpc, 'w')
 
     if args.tournament_name is not None:
         tournament = 'Tournament #%d, %s' % (args.tournament_id, args.tournament_name)
@@ -183,6 +191,11 @@ def main():
 
             if index > args.start_index:
                 print
+
+            if acpc_output_file is not None:
+                fields = line.split(':')
+                fields[1] = str(index)
+                acpc_output_file.write(':'.join(fields))
 
             # add in time
             print 'PokerStars Hand #%d: %s Hold\'em No Limit ($%d/$%d USD) - %s' % (
@@ -382,6 +395,8 @@ def main():
             if len(hand.betting) == 4 and (hand.betting[3] == '' or hand.betting[3][-1] == 'c'):
                 showdown()
             index += 1
+    if acpc_output_file is not None:
+        acpc_output_file.close()
 
 if __name__ == '__main__':
     main()
